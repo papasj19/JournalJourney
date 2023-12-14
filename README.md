@@ -1,6 +1,6 @@
 # Project 1 - JournalJourney
 by Spencer Johnson & Daniel Strens & Mateo Firenze
-on October 2023
+on December 2023
 
 The following explanation is in conjunction with Mobile Device Programming class at LaSalle University
 

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "709220974773",
+    "project_id": "dailydiary-b780a",
+    "storage_bucket": "dailydiary-b780a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709220974773:android:9e012630b2b80bbdbb3efc",
+        "android_client_info": {
+          "package_name": "com.dailydiary.dailydiary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709220974773-bvqsn2u58kvqt8rbme8q1r63uneqoph5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dailydiary.dailydiary",
+            "certificate_hash": "a69900df92d6ac4af1744f946c8127ec79615158"
+          }
+        },
+        {
+          "client_id": "709220974773-bbat2m8sk6jhm4v6i3hs0jgbqaqup1ia.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdg3rYmrug2KhditJsxbD3B4q9uu4ozpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709220974773-bbat2m8sk6jhm4v6i3hs0jgbqaqup1ia.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "709220974773-0kuf29am7e99oodeokc8pc0i3kf04lgu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dailydiary.dailydiary"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

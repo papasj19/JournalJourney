@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:dailydiary/homePage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebaseAuthentif;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +13,9 @@ class ResetPassword extends StatelessWidget{
 
   final TextEditingController emailController = TextEditingController();
 
-  ResetPassword({super.key});
+  final CameraDescription firstCamera;
+
+  ResetPassword({super.key, required this.firstCamera});
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebaseAuthentif.User?>(
@@ -133,7 +136,7 @@ class ResetPassword extends StatelessWidget{
             ),
           );
         }
-        return const HomePage();
+        return HomePage(firstCamera: firstCamera,);
       },
     );
   }

@@ -1,7 +1,10 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'login.dart';
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key});
+  final CameraDescription firstCamera;
+
+  const LandingPage({super.key, required this.firstCamera});
 
   @override
   State<LandingPage> createState() => _LandingPage();
@@ -54,7 +57,7 @@ class _LandingPage extends State<LandingPage> {
                 elevation: 0,
                 height: 50,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen(firstCamera:widget.firstCamera,)));
                 },
                 color: Color(0xff25bcbb),
                 textColor: Colors.white,

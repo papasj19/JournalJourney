@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:dailydiary/homePage.dart';
 import 'package:dailydiary/register.dart';
 import 'package:dailydiary/resetPassword.dart';
@@ -17,7 +18,9 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginScreen({super.key});
+  final CameraDescription firstCamera;
+
+  LoginScreen({super.key, required this.firstCamera});
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebaseAuthentif.User?>(
@@ -77,7 +80,7 @@ class LoginScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute<Register>(
-                              builder: (context) => Register(),
+                              builder: (context) => Register(firstCamera: firstCamera,),
                             ),
                           );
                         },
@@ -90,7 +93,7 @@ class LoginScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute<ResetPassword>(
-                            builder: (context) => ResetPassword(),
+                            builder: (context) => ResetPassword(firstCamera: firstCamera,),
                           ),
                         );
                       },
@@ -194,7 +197,7 @@ class LoginScreen extends StatelessWidget {
             ),
           );
         }
-        return const HomePage();
+        return HomePage(firstCamera: firstCamera);
       },
     );
   }

@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:dailydiary/homePage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebaseAuthentif;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Register extends StatelessWidget {
-  Register({super.key});
+  final CameraDescription firstCamera;
+
+  Register({super.key, required this.firstCamera});
 
   final Color primaryColor = Color(0xff18203d);
   final Color secondaryColor = Color(0xff232c51);
@@ -132,7 +135,7 @@ class Register extends StatelessWidget {
               ),
             );
           }
-          return const HomePage();
+          return HomePage(firstCamera: firstCamera,);
         });
   }
 

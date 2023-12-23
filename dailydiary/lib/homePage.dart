@@ -1,9 +1,11 @@
+import 'package:camera/camera.dart';
+import 'package:dailydiary/addEntry.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
-
 class HomePage extends StatelessWidget{
-  const HomePage({super.key});
-
+  final CameraDescription firstCamera;
+  const HomePage({super.key, required this.firstCamera});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +45,8 @@ class HomePage extends StatelessWidget{
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const Placeholder()));
+          // Access the firstCamera from the CameraProvider
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AddEntry(firstCamera: firstCamera,)));
         },
         child: const Icon(Icons.add),
       ),

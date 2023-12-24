@@ -58,7 +58,7 @@ class AddEntry extends StatelessWidget{
                   controller: titleController,
                   decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
-                    labelText: 'Give Your It A Title?',
+                    labelText: 'Give It A Title?',
                   ),
                 ),
               ),

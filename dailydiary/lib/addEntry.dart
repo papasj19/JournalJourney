@@ -75,25 +75,26 @@ class AddEntry extends StatelessWidget{
                   decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     labelText: 'Give It A Title?',
-                  ),
+                  )
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                 child:TextFormField(
                     controller: entryController,
-                  validator: (value) {
-                    if (value != null) {
-                      return null;
-                    }
-                    return 'Hes dead jim';
-                  },
+
                     decoration: const InputDecoration(
                       labelText: 'Your Entry Goes Here',
                       border: OutlineInputBorder(),
                     ),
                     maxLines: 8,
                     minLines: 3,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Make sure to add a journal entry!';
+                    }
+                    return null;
+                  }
                   ),
               ),
               Padding(
@@ -160,7 +161,7 @@ class AddEntry extends StatelessWidget{
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Processing Data')));
+                          const SnackBar(content: Text('Processing Data')));
                       addEntry(JournalEntry(
                           title: title,
                           entry: entryController.text,

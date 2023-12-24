@@ -1,7 +1,13 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:dailydiary/homePage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 class AddEntry extends StatelessWidget{
   final CameraDescription firstCamera;
 
@@ -9,6 +15,9 @@ class AddEntry extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+
+    var db = FirebaseFirestore.instance;
     var entryController = TextEditingController();
     var titleController = TextEditingController();
     var moodController = TextEditingController();
@@ -17,8 +26,15 @@ class AddEntry extends StatelessWidget{
     String dateStr = "${today.day}-${today.month}-${today.year}";
     var title;
 
-    var score;
+    var scoreEntered = "3";
     String datePrint = "Journal Date: " + dateStr;
+
+
+
+    void addEntry(JournalEntry newEntry) {
+      db.collection("entries").add(newEntry.toMap());
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add a new Entry', style: TextStyle(color: Colors.black)),
@@ -67,10 +83,10 @@ class AddEntry extends StatelessWidget{
                 child:TextFormField(
                     controller: entryController,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please complete the form';
+                    if (value != null) {
+                      return null;
                     }
-                    return null;
+                    return 'Hes dead jim';
                   },
                     decoration: const InputDecoration(
                       labelText: 'Your Entry Goes Here',
@@ -91,7 +107,7 @@ class AddEntry extends StatelessWidget{
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                       child:InkWell(
                             onTap: () {
-                              score = 10;
+                              scoreEntered = "10";
                               },
                             child: Ink.image(
                               image: const AssetImage('assets/thumbs_up.png'),
@@ -105,7 +121,7 @@ class AddEntry extends StatelessWidget{
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                       child:InkWell(
                         onTap: () {
-                          score = 5;
+                          scoreEntered = "5";
                           },
                         child: Ink.image(
                           image: const AssetImage('assets/neutral.png'),
@@ -119,7 +135,7 @@ class AddEntry extends StatelessWidget{
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                     child:InkWell(
                           onTap: () {
-                            score = 0;
+                            scoreEntered = "0";
                           },
                           child: Ink.image(
                             image: const AssetImage('assets/thumbs_down.png'),
@@ -141,7 +157,26 @@ class AddEntry extends StatelessWidget{
                       color: Colors.blue,
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Processing Data')));
+                      addEntry(JournalEntry(
+                          title: title,
+                          entry: entryController.text,
+                        score: scoreEntered
+                      ));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<HomePage>(
+                          builder: (context) => HomePage(firstCamera: firstCamera,),
+                        ),
+                      );
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('WTF')));
+                    }
+                  },
                   child: const Text("Submit Entry?"),
               ),
               )
@@ -151,6 +186,7 @@ class AddEntry extends StatelessWidget{
       ),
     );
   }
+
 
 }
 // A screen that allows users to take a picture using a given camera.
@@ -262,5 +298,37 @@ class DisplayPictureScreen extends StatelessWidget {
       // constructor with the given path to display the image.
       body: Image.file(File(imagePath)),
     );
+  }
+}
+
+class JournalEntry {
+  String? title;
+  String entry;
+  String? score;
+  String? picture;
+
+  JournalEntry({
+    this.title,
+    required this.entry,
+    this.score,
+    this.picture,
+  });
+
+  factory JournalEntry.fromMap(Map<String, dynamic> data) {
+    return JournalEntry(
+      title: data['title'],
+      entry: data['description'],
+      score: data['score'],
+      picture: data['picture'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'entry': entry,
+      'score': score,
+      'picture': picture,
+    };
   }
 }

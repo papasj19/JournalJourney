@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:dailydiary/addEntry.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 class HomePage extends StatelessWidget{
   final CameraDescription firstCamera;
   const HomePage({super.key, required this.firstCamera});
@@ -40,7 +41,7 @@ class HomePage extends StatelessWidget{
       ),
 
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+
 
       ),
       floatingActionButton: FloatingActionButton(

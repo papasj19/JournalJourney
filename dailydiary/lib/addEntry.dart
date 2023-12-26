@@ -30,9 +30,22 @@ class AddEntry extends StatelessWidget{
     String datePrint = "Journal Date: " + dateStr;
 
 
+    Future<List<JournalEntry>> getEntries() async {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+      await db.collection("Journals").get();
+
+      // Convert QueryDocumentSnapshot to Map
+      List<Map<String, dynamic>> entriesData =
+      querySnapshot.docs.map((doc) => doc.data()).toList();
+      List<JournalEntry> entries =
+      entriesData.map((data) => JournalEntry.fromMap(data)).toList();
+
+      return entries;
+    }
+
 
     void addEntry(JournalEntry newEntry) {
-      db.collection("entries").add(newEntry.toMap());
+      db.collection("Journals").add(newEntry.toMap());
     }
 
     return Scaffold(
@@ -159,10 +172,17 @@ class AddEntry extends StatelessWidget{
                     ),
                   ),
                   onPressed: () {
+                    addEntry(JournalEntry(
+                        date: dateStr,
+                        title: titleController.text,
+                        entry: entryController.text,
+                        score: scoreEntered
+                    ));
                     if (_formKey.currentState?.validate() ?? false) {
                       ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Processing Data')));
                       addEntry(JournalEntry(
+                        date: dateStr,
                           title: title,
                           entry: entryController.text,
                         score: scoreEntered
@@ -303,12 +323,14 @@ class DisplayPictureScreen extends StatelessWidget {
 }
 
 class JournalEntry {
+  String date;
   String? title;
   String entry;
   String? score;
   String? picture;
 
   JournalEntry({
+    required this.date,
     this.title,
     required this.entry,
     this.score,
@@ -317,6 +339,7 @@ class JournalEntry {
 
   factory JournalEntry.fromMap(Map<String, dynamic> data) {
     return JournalEntry(
+      date: data['date'],
       title: data['title'],
       entry: data['description'],
       score: data['score'],
@@ -326,6 +349,7 @@ class JournalEntry {
 
   Map<String, dynamic> toMap() {
     return {
+      'date' : date,
       'title': title,
       'entry': entry,
       'score': score,

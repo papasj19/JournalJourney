@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:dailydiary/homePage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dailydiary/services/auth_services.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +17,7 @@ class AddEntry extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
 
     var db = FirebaseFirestore.instance;
     var entryController = TextEditingController();
@@ -44,8 +46,13 @@ class AddEntry extends StatelessWidget{
     }
 
 
-    void addEntry(JournalEntry newEntry) {
-      db.collection("Journals").add(newEntry.toMap());
+
+
+
+    Future<void> addEntry(JournalEntry newEntry) async {
+      User? currentUser = await FirebaseAuth.instance.currentUser;
+      String? userId = currentUser?.uid;
+      db.collection("userData").doc(userId).collection("entry").add(newEntry.toMap());
     }
 
     return Scaffold(
@@ -172,13 +179,14 @@ class AddEntry extends StatelessWidget{
                     ),
                   ),
                   onPressed: () {
+
                     addEntry(JournalEntry(
                         date: dateStr,
                         title: titleController.text,
                         entry: entryController.text,
                         score: scoreEntered
                     ));
-                    if (_formKey.currentState?.validate() ?? false) {
+                    if (formKey.currentState?.validate() ?? false) {
                       ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Processing Data')));
                       addEntry(JournalEntry(

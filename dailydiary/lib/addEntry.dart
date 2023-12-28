@@ -32,18 +32,7 @@ class AddEntry extends StatelessWidget{
     String datePrint = "Journal Date: " + dateStr;
 
 
-    Future<List<JournalEntry>> getEntries() async {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
-      await db.collection("Journals").get();
 
-      // Convert QueryDocumentSnapshot to Map
-      List<Map<String, dynamic>> entriesData =
-      querySnapshot.docs.map((doc) => doc.data()).toList();
-      List<JournalEntry> entries =
-      entriesData.map((data) => JournalEntry.fromMap(data)).toList();
-
-      return entries;
-    }
 
 
 
@@ -52,6 +41,7 @@ class AddEntry extends StatelessWidget{
     Future<void> addEntry(JournalEntry newEntry) async {
       User? currentUser = await FirebaseAuth.instance.currentUser;
       String? userId = currentUser?.uid;
+
       db.collection("userData").doc(userId).collection("entry").add(newEntry.toMap());
     }
 
@@ -345,9 +335,19 @@ class JournalEntry {
     this.picture,
   });
 
+  factory JournalEntry.fromSnap(DocumentSnapshot<Map<String, dynamic>> data) {
+    return JournalEntry(
+      date: data.data()!["date"],
+      title: data.data()!['title'],
+      entry: data.data()!['description'],
+      score: data.data()!['score'],
+      picture: data.data()!['picture'],
+    );
+  }
+
   factory JournalEntry.fromMap(Map<String, dynamic> data) {
     return JournalEntry(
-      date: data['date'],
+      date: data["date"],
       title: data['title'],
       entry: data['description'],
       score: data['score'],
@@ -364,4 +364,5 @@ class JournalEntry {
       'picture': picture,
     };
   }
+
 }

@@ -174,7 +174,8 @@ class AddEntry extends StatelessWidget{
                         date: dateStr,
                         title: titleController.text,
                         entry: entryController.text,
-                        score: scoreEntered
+                        score: scoreEntered,
+                        picture: "."
                     ));
                     if (formKey.currentState?.validate() ?? false) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +184,8 @@ class AddEntry extends StatelessWidget{
                         date: dateStr,
                           title: title,
                           entry: entryController.text,
-                        score: scoreEntered
+                        score: scoreEntered,
+                        picture: "."
                       ));
                       Navigator.push(
                         context,
@@ -322,17 +324,17 @@ class DisplayPictureScreen extends StatelessWidget {
 
 class JournalEntry {
   String date;
-  String? title;
+  String title;
   String entry;
-  String? score;
-  String? picture;
+  String score;
+  String picture;
 
   JournalEntry({
     required this.date,
-    this.title,
+    required this.title,
     required this.entry,
-    this.score,
-    this.picture,
+    required this.score,
+    required this.picture,
   });
 
   factory JournalEntry.fromSnap(DocumentSnapshot<Map<String, dynamic>> data) {

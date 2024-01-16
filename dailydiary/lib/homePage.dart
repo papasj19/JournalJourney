@@ -14,14 +14,14 @@ class HomePage extends StatelessWidget{
   Future<Stream<QuerySnapshot<Object?>>> getMeTheEntries() async {
     User? currentUser = await FirebaseAuth.instance.currentUser;
     String? userId = currentUser?.uid;
-    return FirebaseFirestore.instance.collection("Journals").doc(userId).collection("entry").snapshots();
+    return FirebaseFirestore.instance.collection("userData").doc(userId).collection("entry").snapshots();
   }
 
   Future<void> getAllEntries() async {
     User? currentUser = await FirebaseAuth.instance.currentUser;
     String? userId = currentUser?.uid;
     CollectionReference productsRef =
-    FirebaseFirestore.instance.collection("Journals").doc(userId).collection("entry");
+    FirebaseFirestore.instance.collection("userData").doc(userId).collection("entry");
     final snapshot = await productsRef.get();
     List<Map<String, dynamic>> map =
     snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
@@ -34,12 +34,15 @@ class HomePage extends StatelessWidget{
 
     var db = FirebaseFirestore.instance;
     QuerySnapshot<Map<String, dynamic>> snapshot =
-    await db.collection("Employees").doc(userId).collection("entry").get();
+    await db.collection("userData").doc(userId).collection("entry").get();
 
     var returnVal = snapshot.docs
         .map((docSnapshot) => JournalEntry.fromSnap(docSnapshot))
         .toList();
 
+    print(returnVal);
+
+    print("hello bro");
 
     return returnVal;
   }
@@ -48,21 +51,20 @@ class HomePage extends StatelessWidget{
   Future<List<JournalEntry>> getEntries() async {
     User? currentUser = await FirebaseAuth.instance.currentUser;
     String? userId = currentUser?.uid;
-
     var db = FirebaseFirestore.instance;
-
-
-
-  QuerySnapshot<Map<String, dynamic>>  querySnapshot =
-    await db.collection("Journals").doc(userId).collection("entry").get();
+    QuerySnapshot<Map<String, dynamic>>  querySnapshot =
+    await db.collection("userData").doc(userId).collection("entry").get();
 
     // Convert QueryDocumentSnapshot to Map
     List<Map<String, dynamic>> entriesData =
     querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    print(entriesData);
     List<JournalEntry> entries =
     entriesData.map((data) => JournalEntry.fromMap(data)).toList();
-
-    var myJournals = getMeTheEntries();
+    print(entries);
+    print("wtf");
+    print("Wtf");
     return entries;
   }
 
@@ -104,7 +106,7 @@ class HomePage extends StatelessWidget{
 
       body: Center(
           child: FutureBuilder<List<JournalEntry>>(
-              future: getEntries(),
+              future: retrieveEntries(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -122,8 +124,7 @@ class HomePage extends StatelessWidget{
                     itemBuilder: (context, index) {
                       return Card(
                         child: ListTile(
-                          leading: Icon(Icons.favorite),
-                          title: Text(entries[index].date)
+                          title: Text("lol")
                         ),
                       );
                     },

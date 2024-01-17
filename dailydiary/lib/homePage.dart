@@ -11,42 +11,6 @@ class HomePage extends StatelessWidget{
   final CameraDescription firstCamera;
   const HomePage({super.key, required this.firstCamera});
 
-  Future<Stream<QuerySnapshot<Object?>>> getMeTheEntries() async {
-    User? currentUser = await FirebaseAuth.instance.currentUser;
-    String? userId = currentUser?.uid;
-    return FirebaseFirestore.instance.collection("userData").doc(userId).collection("entry").snapshots();
-  }
-
-  Future<void> getAllEntries() async {
-    User? currentUser = await FirebaseAuth.instance.currentUser;
-    String? userId = currentUser?.uid;
-    CollectionReference productsRef =
-    FirebaseFirestore.instance.collection("userData").doc(userId).collection("entry");
-    final snapshot = await productsRef.get();
-    List<Map<String, dynamic>> map =
-    snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-  }
-
-
-  Future<List<JournalEntry>> retrieveEntries() async {
-    User? currentUser = await FirebaseAuth.instance.currentUser;
-    String? userId = currentUser?.uid;
-
-    var db = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>> snapshot =
-    await db.collection("userData").doc(userId).collection("entry").get();
-
-    var returnVal = snapshot.docs
-        .map((docSnapshot) => JournalEntry.fromSnap(docSnapshot))
-        .toList();
-
-    print(returnVal);
-
-    print("hello bro");
-
-    return returnVal;
-  }
-
 
   Future<List<JournalEntry>> getEntries() async {
     User? currentUser = await FirebaseAuth.instance.currentUser;
@@ -58,14 +22,36 @@ class HomePage extends StatelessWidget{
     // Convert QueryDocumentSnapshot to Map
     List<Map<String, dynamic>> entriesData =
     querySnapshot.docs.map((doc) => doc.data()).toList();
-
-    print(entriesData);
     List<JournalEntry> entries =
     entriesData.map((data) => JournalEntry.fromMap(data)).toList();
-    print(entries);
-    print("wtf");
-    print("Wtf");
     return entries;
+  }
+
+
+  void deleteEntry(JournalEntry entry) async {
+    User? currentUser = await FirebaseAuth.instance.currentUser;
+    String? userId = currentUser?.uid;
+    var db = FirebaseFirestore.instance;
+    QuerySnapshot querySnapshot = await db
+        .collection("userData").doc(userId).collection("entry").
+        where('entry', isEqualTo: entry.entry).where('date', isEqualTo: entry.date).where('score', isEqualTo: entry.score)
+        .get();
+
+    //get the id of the doc of our recipe
+    var firstDocument = querySnapshot.docs.first;
+
+    //delete the childs
+    final docRef = db.collection("userData").doc(userId).collection("entry").doc(firstDocument.id);
+    final updates = <String, dynamic>{
+      "score": FieldValue.delete(),
+      "date": FieldValue.delete(),
+      "entry": FieldValue.delete(),
+    };
+    await docRef.update(updates);
+
+    //delete the doc
+    await db.collection("userData").doc(userId).collection("entry").doc(firstDocument.id).delete();
+    //notifyListeners();  -----> what does this do??
   }
 
 
@@ -106,7 +92,7 @@ class HomePage extends StatelessWidget{
 
       body: Center(
           child: FutureBuilder<List<JournalEntry>>(
-              future: retrieveEntries(),
+              future: getEntries(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -124,7 +110,12 @@ class HomePage extends StatelessWidget{
                     itemBuilder: (context, index) {
                       return Card(
                         child: ListTile(
-                          title: Text("lol")
+                            leading: CircleAvatar(child: Text(entries[index].score)),
+                          title: Text(entries[index].date),
+                            trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () => deleteEntry(entries[index]),
+                      ),
                         ),
                       );
                     },

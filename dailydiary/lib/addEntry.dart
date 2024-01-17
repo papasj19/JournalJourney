@@ -349,11 +349,11 @@ class JournalEntry {
 
   factory JournalEntry.fromMap(Map<String, dynamic> data) {
     return JournalEntry(
-      date: data["date"],
-      title: data['title'],
-      entry: data['description'],
-      score: data['score'],
-      picture: data['picture'],
+      date: data["date"].toString(),
+      title: data['title'].toString(),
+      entry: data['description'].toString(),
+      score: data['score'].toString(),
+      picture: data['picture'].toString(),
     );
   }
 

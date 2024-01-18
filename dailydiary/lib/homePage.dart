@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dailydiary/addEntry.dart';
+import 'package:dailydiary/showEntry.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
@@ -56,9 +57,23 @@ class HomePage extends StatelessWidget{
 
 
 
+
+
   
   @override
   Widget build(BuildContext context) {
+
+
+    showEntry(JournalEntry entry) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ShowEntry(entry: entry),
+        ),
+      );
+    }
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Diary', style: TextStyle(color: Colors.black)),
@@ -110,12 +125,13 @@ class HomePage extends StatelessWidget{
                     itemBuilder: (context, index) {
                       return Card(
                         child: ListTile(
-                            leading: CircleAvatar(child: Text(entries[index].score)),
+                          onTap: () => showEntry(entries[index]),
+                          leading: CircleAvatar(child: Text(entries[index].score)),
                           title: Text(entries[index].date),
-                            trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => deleteEntry(entries[index]),
-                      ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () => deleteEntry(entries[index]),
+                          ),
                         ),
                       );
                     },

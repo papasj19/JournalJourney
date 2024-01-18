@@ -69,6 +69,7 @@ flutter:
     - assets/thumbs_up.png
     - assets/thumbs_down.png
     - assets/neutral.png
+    - assets/tbd.jpeg
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

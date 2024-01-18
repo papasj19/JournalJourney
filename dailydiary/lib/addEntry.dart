@@ -10,6 +10,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+
+
+
+
 class AddEntry extends StatelessWidget{
   final CameraDescription firstCamera;
 
@@ -17,13 +22,12 @@ class AddEntry extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
+    final _formKey = GlobalKey<FormState>();
 
     var db = FirebaseFirestore.instance;
     var entryController = TextEditingController();
     var titleController = TextEditingController();
     var moodController = TextEditingController();
-    var submitController = TextEditingController();
     DateTime today = DateTime.now();
     String dateStr = "${today.day}-${today.month}-${today.year}";
     var title;
@@ -31,19 +35,22 @@ class AddEntry extends StatelessWidget{
     var scoreEntered = "3";
     String datePrint = "Journal Date: " + dateStr;
 
-
-
-
-
-
-
-
     Future<void> addEntry(JournalEntry newEntry) async {
       User? currentUser = await FirebaseAuth.instance.currentUser;
       String? userId = currentUser?.uid;
 
       db.collection("userData").doc(userId).collection("entry").add(newEntry.toMap());
     }
+
+    pushHome(CameraDescription cam) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(firstCamera: cam),
+        ),
+      );
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -65,145 +72,168 @@ class AddEntry extends StatelessWidget{
         alignment: Alignment.topCenter,
         margin: const EdgeInsets.symmetric(horizontal: 30),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: Text(
-                  datePrint,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.openSans(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: Text(
+                    datePrint,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.openSans(
                       color: Colors.blue, fontSize: 24),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: TextFormField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    labelText: 'Give It A Title?',
-                  )
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child:TextFormField(
-                    controller: entryController,
-
-                    decoration: const InputDecoration(
-                      labelText: 'Your Entry Goes Here',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 8,
-                    minLines: 3,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Make sure to add a journal entry!';
-                    }
-                    return null;
-                  }
                   ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                 ),
 
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                      child:InkWell(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Give It A Title?',
+                    ),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Make sure to add a title for your entry!';
+                        }
+                        return null;
+                      }
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child:TextFormField(
+                      controller: entryController,
+
+                      decoration: const InputDecoration(
+                        labelText: 'Your Entry Goes Here',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 8,
+                      minLines: 3,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Make sure to add a journal entry!';
+                        }
+                        return null;
+                      }
+                    ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          child:InkWell(
+                                onTap: () {
+                                  scoreEntered = "10";
+                                  },
+                                child: Ink.image(
+                                  image: const AssetImage('assets/thumbs_up.png'),
+                                  // fit: BoxFit.cover,
+                                  width: 70,
+                                  height: 70,
+                                ),
+                              ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          child:InkWell(
                             onTap: () {
-                              scoreEntered = "10";
+                              scoreEntered = "5";
                               },
                             child: Ink.image(
-                              image: const AssetImage('assets/thumbs_up.png'),
+                              image: const AssetImage('assets/neutral.png'),
                               // fit: BoxFit.cover,
                               width: 70,
                               height: 70,
                             ),
                           ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                      child:InkWell(
-                        onTap: () {
-                          scoreEntered = "5";
-                          },
-                        child: Ink.image(
-                          image: const AssetImage('assets/neutral.png'),
-                          // fit: BoxFit.cover,
-                          width: 70,
-                          height: 70,
                         ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          child:InkWell(
+                                onTap: () {
+                                  scoreEntered = "0";
+                                },
+                                child: Ink.image(
+                                  image: const AssetImage('assets/thumbs_down.png'),
+                                  // fit: BoxFit.cover,
+                                  width: 70,
+                                  height: 70,
+                                ),
+                              ),
+                            )
+                          ]
+                        )
+                      ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: ElevatedButton(
+                    child: Text("Tmp for Voice"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    onPressed: () {},
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(
+                        color: Colors.blue,
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    child:InkWell(
-                          onTap: () {
-                            scoreEntered = "0";
-                          },
-                          child: Ink.image(
-                            image: const AssetImage('assets/thumbs_down.png'),
-                            // fit: BoxFit.cover,
-                            width: 70,
-                            height: 70,
-                          ),
-                        ),
-                      )
-                    ]
-                  )
-                ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                    side: const BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  onPressed: () {
+                    onPressed: () {
 
-                    addEntry(JournalEntry(
-                        date: dateStr,
-                        title: titleController.text,
-                        entry: entryController.text,
-                        score: scoreEntered,
-                        picture: "."
-                    ));
-                    if (formKey.currentState?.validate() ?? false) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')));
-                      addEntry(JournalEntry(
-                        date: dateStr,
-                          title: title,
-                          entry: entryController.text,
-                        score: scoreEntered,
-                        picture: "."
-                      ));
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute<HomePage>(
-                          builder: (context) => HomePage(firstCamera: firstCamera,),
-                        ),
-                      );
-                    }else{
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('WTF')));
-                    }
-                  },
-                  child: const Text("Submit Entry?"),
-              ),
-              )
+                      if (_formKey.currentState?.validate() ?? false) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Processing Data')));
+                        addEntry(JournalEntry(
+                          date: dateStr,
+                            title: titleController.text,
+                            entry: entryController.text,
+                          score: scoreEntered,
+                          picture: "."
+                        ));
+                        titleController.clear();
+                        entryController.clear();
+                        pushHome(firstCamera);
+                      }else{
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Please Complete Form')));
+                      }
+                    },
+                    child: const Text("Submit Entry?"),
+                ),
+                )
             ],
           ),
         ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.delete),
+        onPressed: () {
+          // Access the firstCamera from the CameraProvider
+          Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage(firstCamera: firstCamera,)));
+        },
       ),
     );
   }
@@ -301,6 +331,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
         child: const Icon(Icons.camera_alt),
       ),
+
     );
   }
 }
@@ -351,7 +382,7 @@ class JournalEntry {
     return JournalEntry(
       date: data["date"].toString(),
       title: data['title'].toString(),
-      entry: data['description'].toString(),
+      entry: data['entry'].toString(),
       score: data['score'].toString(),
       picture: data['picture'].toString(),
     );

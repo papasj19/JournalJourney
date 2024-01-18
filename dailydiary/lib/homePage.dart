@@ -3,72 +3,35 @@ import 'dart:developer';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dailydiary/addEntry.dart';
+import 'package:dailydiary/myAppState.dart';
 import 'package:dailydiary/showEntry.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
+
+
 class HomePage extends StatelessWidget{
+
+
   final CameraDescription firstCamera;
   const HomePage({super.key, required this.firstCamera});
 
 
-  Future<List<JournalEntry>> getEntries() async {
-    User? currentUser = await FirebaseAuth.instance.currentUser;
-    String? userId = currentUser?.uid;
-    var db = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>>  querySnapshot =
-    await db.collection("userData").doc(userId).collection("entry").get();
 
-    // Convert QueryDocumentSnapshot to Map
-    List<Map<String, dynamic>> entriesData =
-    querySnapshot.docs.map((doc) => doc.data()).toList();
-    List<JournalEntry> entries =
-    entriesData.map((data) => JournalEntry.fromMap(data)).toList();
-    return entries;
-  }
-
-
-  void deleteEntry(JournalEntry entry) async {
-    User? currentUser = await FirebaseAuth.instance.currentUser;
-    String? userId = currentUser?.uid;
-    var db = FirebaseFirestore.instance;
-    QuerySnapshot querySnapshot = await db
-        .collection("userData").doc(userId).collection("entry").
-        where('entry', isEqualTo: entry.entry).where('date', isEqualTo: entry.date).where('score', isEqualTo: entry.score)
-        .get();
-
-    //get the id of the doc of our recipe
-    var firstDocument = querySnapshot.docs.first;
-
-    //delete the childs
-    final docRef = db.collection("userData").doc(userId).collection("entry").doc(firstDocument.id);
-    final updates = <String, dynamic>{
-      "score": FieldValue.delete(),
-      "date": FieldValue.delete(),
-      "entry": FieldValue.delete(),
-    };
-    await docRef.update(updates);
-
-    //delete the doc
-    await db.collection("userData").doc(userId).collection("entry").doc(firstDocument.id).delete();
-    //notifyListeners();  -----> what does this do??
-  }
-
-
-
-
-
-  
   @override
   Widget build(BuildContext context) {
+
+    var appState = context.watch<MyAppState>();
 
 
     showEntry(JournalEntry entry) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ShowEntry(entry: entry),
+          builder: (context) => ShowEntry(entryGiven: entry),
         ),
       );
     }
@@ -105,9 +68,11 @@ class HomePage extends StatelessWidget{
         ],
       ),
 
+
+
       body: Center(
           child: FutureBuilder<List<JournalEntry>>(
-              future: getEntries(),
+              future: appState.getEntries(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
@@ -130,7 +95,7 @@ class HomePage extends StatelessWidget{
                           title: Text(entries[index].date),
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
-                            onPressed: () => deleteEntry(entries[index]),
+                            onPressed: () => appState.deleteEntry(entries[index]),
                           ),
                         ),
                       );

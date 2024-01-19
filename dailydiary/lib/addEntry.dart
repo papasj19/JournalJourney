@@ -5,52 +5,80 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dailydiary/services/auth_services.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
-
-
-
-
-class AddEntry extends StatelessWidget{
+class AddEntry extends StatefulWidget {
   final CameraDescription firstCamera;
 
-  const AddEntry({super.key, required this.firstCamera});
+  const AddEntry({Key? key, required this.firstCamera}) : super(key: key);
+
+  @override
+  _AddEntryState createState() => _AddEntryState();
+}
+
+class _AddEntryState extends State<AddEntry> {
+  final _formKey = GlobalKey<FormState>();
+  late CameraDescription firstCamera;
+  late TextEditingController entryController;
+  late TextEditingController titleController;
+  late TextEditingController moodController;
+  late DateTime today;
+  late String dateStr;
+  late String title;
+  File? _selectedImage;
+  late String scoreEntered;
+
+  @override
+  void initState() {
+    super.initState();
+    firstCamera = widget.firstCamera;
+    entryController = TextEditingController();
+    titleController = TextEditingController();
+    moodController = TextEditingController();
+    today = DateTime.now();
+    dateStr = "${today.day}-${today.month}-${today.year}";
+    title = '';
+    scoreEntered = '3';
+  }
+
+  Future<void> _pickImage() async {
+    final selected = await ImagePicker().pickImage(source: ImageSource.camera);
+
+    if (selected == null) return;
+
+    setState(() {
+      _selectedImage = File(selected.path);
+    });
+  }
+
+
+  void addEntry(JournalEntry newEntry) async {
+    User? currentUser = await FirebaseAuth.instance.currentUser;
+    String? userId = currentUser?.uid;
+
+    FirebaseFirestore.instance
+        .collection("userData")
+        .doc(userId)
+        .collection("entry")
+        .add(newEntry.toMap());
+  }
+
+  void pushHome(CameraDescription cam) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(firstCamera: cam),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
-
-    var db = FirebaseFirestore.instance;
-    var entryController = TextEditingController();
-    var titleController = TextEditingController();
-    var moodController = TextEditingController();
-    DateTime today = DateTime.now();
-    String dateStr = "${today.day}-${today.month}-${today.year}";
-    var title;
-
-    var scoreEntered = "3";
     String datePrint = "Journal Date: " + dateStr;
-
-    Future<void> addEntry(JournalEntry newEntry) async {
-      User? currentUser = await FirebaseAuth.instance.currentUser;
-      String? userId = currentUser?.uid;
-
-      db.collection("userData").doc(userId).collection("entry").add(newEntry.toMap());
-    }
-
-    pushHome(CameraDescription cam) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(firstCamera: cam),
-        ),
-      );
-    }
-
 
     return Scaffold(
       appBar: AppBar(
@@ -63,7 +91,7 @@ class AddEntry extends StatelessWidget{
           IconButton(
             icon: const Icon(Icons.camera_alt),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => TakePictureScreen(camera: firstCamera,)));
+              _pickImage();
             },
           )
         ],
@@ -78,14 +106,15 @@ class AddEntry extends StatelessWidget{
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: Text(
                     datePrint,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.openSans(
-                      color: Colors.blue, fontSize: 24),
+                        color: Colors.blue, fontSize: 24),
                   ),
-                 ),
+                ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
@@ -96,20 +125,19 @@ class AddEntry extends StatelessWidget{
                       labelText: 'Give It A Title?',
                     ),
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Make sure to add a title for your entry!';
-                        }
-                        return null;
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Make sure to add a title for your entry!';
                       }
+                      return null;
+                    },
                   ),
                 ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                  child:TextFormField(
+                  child: TextFormField(
                       controller: entryController,
-
                       decoration: const InputDecoration(
                         labelText: 'Your Entry Goes Here',
                         border: OutlineInputBorder(),
@@ -123,7 +151,7 @@ class AddEntry extends StatelessWidget{
                         }
                         return null;
                       }
-                    ),
+                  ),
                 ),
 
                 Padding(
@@ -134,24 +162,28 @@ class AddEntry extends StatelessWidget{
                       children: <Widget>[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                          child:InkWell(
-                                onTap: () {
-                                  scoreEntered = "10";
-                                  },
-                                child: Ink.image(
-                                  image: const AssetImage('assets/thumbs_up.png'),
-                                  // fit: BoxFit.cover,
-                                  width: 70,
-                                  height: 70,
-                                ),
-                              ),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                scoreEntered = "10";
+                              });
+                            },
+                            child: Ink.image(
+                              image: const AssetImage('assets/thumbs_up.png'),
+                              // fit: BoxFit.cover,
+                              width: 70,
+                              height: 70,
+                            ),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                          child:InkWell(
+                          child: InkWell(
                             onTap: () {
-                              scoreEntered = "5";
-                              },
+                              setState(() {
+                                scoreEntered = "5";
+                              });
+                            },
                             child: Ink.image(
                               image: const AssetImage('assets/neutral.png'),
                               // fit: BoxFit.cover,
@@ -162,21 +194,23 @@ class AddEntry extends StatelessWidget{
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                          child:InkWell(
-                                onTap: () {
-                                  scoreEntered = "0";
-                                },
-                                child: Ink.image(
-                                  image: const AssetImage('assets/thumbs_down.png'),
-                                  // fit: BoxFit.cover,
-                                  width: 70,
-                                  height: 70,
-                                ),
-                              ),
-                            )
-                          ]
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                scoreEntered = "0";
+                              });
+                            },
+                            child: Ink.image(
+                              image: const AssetImage('assets/thumbs_down.png'),
+                              // fit: BoxFit.cover,
+                              width: 70,
+                              height: 70,
+                            ),
+                          ),
                         )
-                      ),
+                      ]
+                  ),
+                ),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
@@ -190,7 +224,10 @@ class AddEntry extends StatelessWidget{
                     onPressed: () {},
                   ),
                 ),
-
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: _selectedImage != null ? Image.file(_selectedImage!): Text("Take a picture"),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: OutlinedButton(
@@ -206,11 +243,11 @@ class AddEntry extends StatelessWidget{
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Processing Data')));
                         addEntry(JournalEntry(
-                          date: dateStr,
+                            date: dateStr,
                             title: titleController.text,
                             entry: entryController.text,
-                          score: scoreEntered,
-                          picture: "."
+                            score: scoreEntered,
+                            picture: "."
                         ));
                         titleController.clear();
                         entryController.clear();
@@ -221,11 +258,11 @@ class AddEntry extends StatelessWidget{
                       }
                     },
                     child: const Text("Submit Entry?"),
-                ),
+                  ),
                 )
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -237,9 +274,10 @@ class AddEntry extends StatelessWidget{
       ),
     );
   }
-
-
 }
+
+// ... (rest of the code remains unchanged)
+
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
@@ -302,6 +340,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       floatingActionButton: FloatingActionButton(
         // Provide an onPressed callback.
         onPressed: () async {
+          /*
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
           try {
@@ -327,7 +366,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           } catch (e) {
             // If an error occurs, log the error to the console.
             print(e);
-          }
+          }*/
         },
         child: const Icon(Icons.camera_alt),
       ),
@@ -340,15 +379,42 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 class DisplayPictureScreen extends StatelessWidget {
   final String imagePath;
 
-  const DisplayPictureScreen({super.key, required this.imagePath});
+  DisplayPictureScreen({required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+      appBar: AppBar(title: Text('Display Picture')),
+      body: Column(
+        children: [
+          // Display the image
+          Image.file(File(imagePath)),
+
+          // Add validation and go back buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  // Implement validation logic here
+                  // For example, you can show a success message or perform an action.
+                  // For now, let's print a message.
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text('Validate'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Go back to the camera screen
+                  Navigator.pop(context);
+                },
+                child: Text('Go Back'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

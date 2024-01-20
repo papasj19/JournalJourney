@@ -92,7 +92,7 @@ class HomePage extends StatelessWidget{
                         child: ListTile(
                           onTap: () => showEntry(entries[index]),
                           leading: CircleAvatar(child: Text(entries[index].score)),
-                          title: Text(entries[index].date),
+                          title: Text(entries[index].title),
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () => appState.deleteEntry(entries[index]),

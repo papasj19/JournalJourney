@@ -282,7 +282,7 @@ class _AddEntryState extends State<AddEntry> {
           titleController.clear();
           entryController.clear();
           setState(() {
-          _selectedImage = null;
+            _selectedImage = null;
           });
 
         },

@@ -40,8 +40,13 @@ class ShowEntry extends StatelessWidget {
                           Something like this that we did above
                             String pictureAccess = "${entryGiven.picture}";
                             child: Image.asset(pictureAccess)
+
+
+                            Well I think it's better to show the picture that the user inserted..
                          */
-                        child: Image.asset('assets/tbd.jpeg')
+                      child: entryGiven.picture != "."
+                          ? Image.network(entryGiven.picture)
+                          : Container(),
                     ),
 
                     Padding(

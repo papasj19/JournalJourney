@@ -4,12 +4,10 @@ import 'package:dailydiary/homePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dailydiary/services/auth_services.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart';
 
 class AddEntry extends StatefulWidget {
   final CameraDescription firstCamera;
@@ -55,10 +53,21 @@ class _AddEntryState extends State<AddEntry> {
     });
   }
 
-
   void addEntry(JournalEntry newEntry) async {
     User? currentUser = await FirebaseAuth.instance.currentUser;
     String? userId = currentUser?.uid;
+
+    if (_selectedImage != null) {
+      Reference storageReference = FirebaseStorage.instance.ref().child(
+          "images/${_selectedImage!.path + DateTime.now().millisecondsSinceEpoch.toString()}");
+      try {
+        await storageReference.putFile(_selectedImage!);
+        String imageUrl = await storageReference.getDownloadURL();
+        newEntry.picture = imageUrl;
+      } catch (e) {
+        e.toString();
+      }
+    }
 
     FirebaseFirestore.instance
         .collection("userData")
@@ -67,26 +76,18 @@ class _AddEntryState extends State<AddEntry> {
         .add(newEntry.toMap());
   }
 
-  void pushHome(CameraDescription cam) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(firstCamera: cam),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     String datePrint = "Journal Date: " + dateStr;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add a new Entry', style: TextStyle(color: Colors.black)),
+        title: const Text('Add a new Entry',
+            style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 1,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.camera_alt),
@@ -107,17 +108,18 @@ class _AddEntryState extends State<AddEntry> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: Text(
                     datePrint,
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.openSans(
-                        color: Colors.blue, fontSize: 24),
+                    style:
+                        GoogleFonts.openSans(color: Colors.blue, fontSize: 24),
                   ),
                 ),
-
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: TextFormField(
                     controller: titleController,
                     decoration: const InputDecoration(
@@ -133,9 +135,9 @@ class _AddEntryState extends State<AddEntry> {
                     },
                   ),
                 ),
-
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: TextFormField(
                       controller: entryController,
                       decoration: const InputDecoration(
@@ -150,18 +152,18 @@ class _AddEntryState extends State<AddEntry> {
                           return 'Make sure to add a journal entry!';
                         }
                         return null;
-                      }
-                  ),
+                      }),
                 ),
-
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
                           child: InkWell(
                             onTap: () {
                               setState(() {
@@ -177,7 +179,8 @@ class _AddEntryState extends State<AddEntry> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
                           child: InkWell(
                             onTap: () {
                               setState(() {
@@ -193,7 +196,8 @@ class _AddEntryState extends State<AddEntry> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
                           child: InkWell(
                             onTap: () {
                               setState(() {
@@ -208,12 +212,11 @@ class _AddEntryState extends State<AddEntry> {
                             ),
                           ),
                         )
-                      ]
-                  ),
+                      ]),
                 ),
-
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: ElevatedButton(
                     child: Text("Tmp for Voice"),
                     style: ElevatedButton.styleFrom(
@@ -225,11 +228,15 @@ class _AddEntryState extends State<AddEntry> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                  child: _selectedImage != null ? Image.file(_selectedImage!): Text("Take a picture"),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: _selectedImage != null
+                      ? Image.file(_selectedImage!)
+                      : Text("Take a picture"),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.blue,
@@ -238,7 +245,6 @@ class _AddEntryState extends State<AddEntry> {
                       ),
                     ),
                     onPressed: () {
-
                       if (_formKey.currentState?.validate() ?? false) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Processing Data')));
@@ -247,12 +253,16 @@ class _AddEntryState extends State<AddEntry> {
                             title: titleController.text,
                             entry: entryController.text,
                             score: scoreEntered,
-                            picture: "."
-                        ));
+                            picture: "."));
                         titleController.clear();
                         entryController.clear();
-                        pushHome(firstCamera);
-                      }else{
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => HomePage(
+                                  firstCamera: firstCamera,
+                                )));
+                      } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Please Complete Form')));
                       }
@@ -269,151 +279,13 @@ class _AddEntryState extends State<AddEntry> {
         child: const Icon(Icons.delete),
         onPressed: () {
           // Access the firstCamera from the CameraProvider
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage(firstCamera: firstCamera,)));
+          titleController.clear();
+          entryController.clear();
+          setState(() {
+          _selectedImage = null;
+          });
+
         },
-      ),
-    );
-  }
-}
-
-// ... (rest of the code remains unchanged)
-
-// A screen that allows users to take a picture using a given camera.
-class TakePictureScreen extends StatefulWidget {
-  const TakePictureScreen({
-    super.key,
-    required this.camera,
-  });
-
-  final CameraDescription camera;
-
-  @override
-  TakePictureScreenState createState() => TakePictureScreenState();
-}
-
-class TakePictureScreenState extends State<TakePictureScreen> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    // To display the current output from the Camera,
-    // create a CameraController.
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
-
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
-  }
-
-  @override
-  void dispose() {
-    // Dispose of the controller when the widget is disposed.
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
-      // You must wait until the controller is initialized before displaying the
-      // camera preview. Use a FutureBuilder to display a loading spinner until the
-      // controller has finished initializing.
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(_controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
-        onPressed: () async {
-          /*
-          // Take the Picture in a try / catch block. If anything goes wrong,
-          // catch the error.
-          try {
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
-
-            // Attempt to take a picture and get the file `image`
-            // where it was saved.
-            final image = await _controller.takePicture();
-
-            if (!mounted) return;
-
-            // If the picture was taken, display it on a new screen.
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  // Pass the automatically generated path to
-                  // the DisplayPictureScreen widget.
-                  imagePath: image.path,
-                ),
-              ),
-            );
-          } catch (e) {
-            // If an error occurs, log the error to the console.
-            print(e);
-          }*/
-        },
-        child: const Icon(Icons.camera_alt),
-      ),
-
-    );
-  }
-}
-
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  DisplayPictureScreen({required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Display Picture')),
-      body: Column(
-        children: [
-          // Display the image
-          Image.file(File(imagePath)),
-
-          // Add validation and go back buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  // Implement validation logic here
-                  // For example, you can show a success message or perform an action.
-                  // For now, let's print a message.
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: Text('Validate'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Go back to the camera screen
-                  Navigator.pop(context);
-                },
-                child: Text('Go Back'),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -456,12 +328,11 @@ class JournalEntry {
 
   Map<String, dynamic> toMap() {
     return {
-      'date' : date,
+      'date': date,
       'title': title,
       'entry': entry,
       'score': score,
       'picture': picture,
     };
   }
-
 }

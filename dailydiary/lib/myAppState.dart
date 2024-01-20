@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'addEntry.dart';
@@ -26,6 +27,23 @@ class MyAppState extends ChangeNotifier {
     User? currentUser = await FirebaseAuth.instance.currentUser;
     String? userId = currentUser?.uid;
     var db = FirebaseFirestore.instance;
+
+    try{
+      Uri uri = Uri.parse(entry.picture);
+      String filePath = uri.pathSegments.last;
+
+      // Decode the path if it contains special characters
+      String decodedFilePath = Uri.decodeComponent(filePath);
+
+      // Create a reference to the file in Firebase Storage
+      Reference storageReference = FirebaseStorage.instance.ref().child(decodedFilePath);
+
+      // Delete the file
+      await storageReference.delete();
+    }catch(e){
+      e.toString();
+    }
+
     QuerySnapshot querySnapshot = await db
         .collection("userData").doc(userId).collection("entry").
     where('entry', isEqualTo: entry.entry).where('date', isEqualTo: entry.date).where('score', isEqualTo: entry.score).where('picture', isEqualTo: entry.picture).where('title', isEqualTo: entry.title).get();

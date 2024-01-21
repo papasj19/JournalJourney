@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart';
+import 'calendar.dart';
 
 class AddEntry extends StatefulWidget {
   final CameraDescription firstCamera;
@@ -245,6 +246,9 @@ class _AddEntryState extends State<AddEntry> {
                       ),
                     ),
                     onPressed: () {
+                      Calendar cal = new Calendar();
+                      print("tryna add smth");
+                      cal.addEvent();
                       if (_formKey.currentState?.validate() ?? false) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Processing Data')));

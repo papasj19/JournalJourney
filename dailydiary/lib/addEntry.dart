@@ -5,10 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:googleapis/androidenterprise/v1.dart' as v1;
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart';
 import 'calendar.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart' as permissions;
+import 'package:just_audio/just_audio.dart';
 
 class AddEntry extends StatefulWidget {
   final CameraDescription firstCamera;
@@ -30,6 +34,14 @@ class _AddEntryState extends State<AddEntry> {
   late String title;
   File? _selectedImage;
   late String scoreEntered;
+  final recorder = FlutterSoundRecorder();
+  bool isRecorderReady = false;
+  final audioPlayer = AudioPlayer();
+  bool isPlaying = false;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+
+  bool madeAudio = false;
 
   @override
   void initState() {
@@ -42,6 +54,45 @@ class _AddEntryState extends State<AddEntry> {
     dateStr = "${today.day}-${today.month}-${today.year}";
     title = '';
     scoreEntered = '3';
+    initRecorder();
+  }
+
+  Future initRecorder() async {
+    permissions.PermissionStatus status = permissions.PermissionStatus.denied;
+    status = await permissions.Permission.microphone.request();
+
+    if (status != permissions.PermissionStatus.granted) {
+      throw 'Microphone permission not granted';
+    }
+
+    print('This is the status: $status');
+
+    await recorder.openRecorder();
+
+    isRecorderReady = true;
+    recorder.setSubscriptionDuration(const Duration(milliseconds: 500));
+  }
+
+  Future stop() async {
+    if (!isRecorderReady) return;
+
+    final path = await recorder.stopRecorder();
+    final audioFile = File(path!);
+
+    print('Recorded audio: $audioFile');
+    madeAudio = true;
+  }
+
+  Future record() async {
+    if (!isRecorderReady) return;
+
+    await recorder.startRecorder(toFile: 'audio');
+  }
+
+  Future setAudio() async {
+    await audioPlayer.setUrl('file:/data/user/0/com.dailydiary.dailydiary/cache/audio');
+    await audioPlayer.play();
+    print("Hiiiii :3");
   }
 
   Future<void> _pickImage() async {
@@ -67,6 +118,18 @@ class _AddEntryState extends State<AddEntry> {
         newEntry.picture = imageUrl;
       } catch (e) {
         e.toString();
+      }
+    }
+
+    // Add audio
+    if (madeAudio) {
+      try {
+        Reference storageRef = FirebaseStorage.instance.ref().child("vocals/${DateTime.now().millisecondsSinceEpoch.toString()}");
+        await storageRef.putFile(File("file:/data/user/0/com.dailydiary.dailydiary/cache/audio"));
+        String voiceUrl = await storageRef.getDownloadURL();
+        newEntry.voice = voiceUrl;
+      } catch (e) {
+        print(e.toString());
       }
     }
 
@@ -110,17 +173,17 @@ class _AddEntryState extends State<AddEntry> {
               children: <Widget>[
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: Text(
                     datePrint,
                     textAlign: TextAlign.center,
                     style:
-                        GoogleFonts.openSans(color: Colors.blue, fontSize: 24),
+                    GoogleFonts.openSans(color: Colors.blue, fontSize: 24),
                   ),
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: TextFormField(
                     controller: titleController,
                     decoration: const InputDecoration(
@@ -138,7 +201,7 @@ class _AddEntryState extends State<AddEntry> {
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: TextFormField(
                       controller: entryController,
                       decoration: const InputDecoration(
@@ -157,7 +220,7 @@ class _AddEntryState extends State<AddEntry> {
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -217,27 +280,54 @@ class _AddEntryState extends State<AddEntry> {
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: ElevatedButton(
-                    child: Text("Tmp for Voice"),
+                    child: Text("Tap to record"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey,
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    onPressed: () {},
+                    onPressed: () async {
+                      if (recorder.isRecording) {
+                        await stop();
+                      }
+                      else {
+                        await record();
+                      }
+                    },
                   ),
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: ElevatedButton(
+                    child: Text("Check your recording"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      if (isPlaying) {
+                        await audioPlayer.pause();
+                      }
+                      else {
+                        setAudio();
+                      }
+                    },
+                  ),
+                ),
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: _selectedImage != null
                       ? Image.file(_selectedImage!)
                       : Text("Take a picture"),
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.blue,
@@ -257,7 +347,8 @@ class _AddEntryState extends State<AddEntry> {
                             title: titleController.text,
                             entry: entryController.text,
                             score: scoreEntered,
-                            picture: "."));
+                            picture: ".",
+                            voice: "."));
                         titleController.clear();
                         entryController.clear();
                         Navigator.push(
@@ -301,6 +392,7 @@ class JournalEntry {
   String entry;
   String score;
   String picture;
+  String voice;
 
   JournalEntry({
     required this.date,
@@ -308,6 +400,7 @@ class JournalEntry {
     required this.entry,
     required this.score,
     required this.picture,
+    required this.voice,
   });
 
   factory JournalEntry.fromSnap(DocumentSnapshot<Map<String, dynamic>> data) {
@@ -317,6 +410,7 @@ class JournalEntry {
       entry: data.data()!['description'],
       score: data.data()!['score'],
       picture: data.data()!['picture'],
+      voice: data.data()!['voice'],
     );
   }
 
@@ -327,6 +421,7 @@ class JournalEntry {
       entry: data['entry'].toString(),
       score: data['score'].toString(),
       picture: data['picture'].toString(),
+      voice: data['voice'].toString(),
     );
   }
 
@@ -337,6 +432,7 @@ class JournalEntry {
       'entry': entry,
       'score': score,
       'picture': picture,
+      'voice': voice,
     };
   }
 }
